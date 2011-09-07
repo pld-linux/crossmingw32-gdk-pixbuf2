@@ -1,23 +1,30 @@
+#
+# Conditional build:
+%bcond_without	gdiplus	# use libjpeg and libtiff instead of system GDIPLUS
+#
 Summary:	An image loading and scaling library - cross MinGW32 version
 Summary(pl.UTF-8):	Biblioteka ładująca i skalująca obrazki - wersja skrośna MinGW32
 Name:		crossmingw32-gdk-pixbuf2
-Version:	2.22.1
+Version:	2.24.0
 Release:	1
 License:	LGPL v2+
 Group:		Development/Libraries
-Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.22/gdk-pixbuf-%{version}.tar.bz2
-# Source0-md5:	716c4593ead3f9c8cca63b8b1907a561
-URL:		http://www.gtk.org/
+Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.24/gdk-pixbuf-%{version}.tar.xz
+# Source0-md5:	bd7c2a9d23b573db467e39833f12103d
+URL:		http://developer.gnome.org/gdk-pixbuf/
 BuildRequires:	crossmingw32-gcc
-BuildRequires:	crossmingw32-glib2 >= 2.26.0
+BuildRequires:	crossmingw32-glib2 >= 2.28.0
 BuildRequires:	crossmingw32-jasper
 BuildRequires:	crossmingw32-libpng
-# libjpeg + libtiff because gdiplus loader is "known to be broken"
-BuildRequires:	crossmingw32-libjpeg
-BuildRequires:	crossmingw32-libtiff
 BuildRequires:	gtk-doc >= 1.11
 BuildRequires:	pkgconfig >= 1:0.15
-Requires:	crossmingw32-glib2 >= 2.26.0
+BuildRequires:	tar >= 1:1.22
+BuildRequires:	xz
+%if %{without gdiplus}
+BuildRequires:	crossmingw32-libjpeg
+BuildRequires:	crossmingw32-libtiff
+%endif
+Requires:	crossmingw32-glib2 >= 2.28.0
 Conflicts:	crossmingw32-gtk+2 < 2.22.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -62,7 +69,7 @@ Ten pakiet zawiera wersję skrośną dla Win32.
 Summary:	DLL gdk-pixbuf libraries for Windows
 Summary(pl.UTF-8):	Biblioteki DLL gdk-pixbuf dla Windows
 Group:		Applications/Emulators
-Requires:	crossmingw32-glib2-dll >= 2.26.0
+Requires:	crossmingw32-glib2-dll >= 2.28.0
 Requires:	wine
 Conflicts:	crossmingw32-gtk+2-dll < 2.22.0
 
@@ -82,7 +89,8 @@ export PKG_CONFIG_LIBDIR=%{_prefix}/lib/pkgconfig
 	--host=%{target} \
 	--disable-gtk-doc \
 	--disable-man \
-	--with-libjasper
+	--with-libjasper \
+	%{!?with_gdiplus:--without-gdiplus}
 
 %{__make}
 
