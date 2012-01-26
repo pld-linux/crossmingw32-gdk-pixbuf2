@@ -1,0 +1,44 @@
+--- gdk-pixbuf-2.24.1/gdk-pixbuf-2.0.pc.in.orig	2011-08-27 04:33:58.000000000 +0200
++++ gdk-pixbuf-2.24.1/gdk-pixbuf-2.0.pc.in	2011-12-26 21:54:19.189840017 +0100
+@@ -12,7 +12,7 @@
+ Description: Image loading and scaling
+ Version: @VERSION@
+ Requires: gobject-2.0
+-Requires.private: gmodule-no-export-2.0 @PNG_DEP_CFLAGS_PACKAGES@
++Requires.private: gmodule-no-export-2.0
+ Libs: -L${libdir} -lgdk_pixbuf-@GDK_PIXBUF_API_VERSION@
+ Libs.private: @GDK_PIXBUF_EXTRA_LIBS@
+ Cflags: -I${includedir}/gdk-pixbuf-@GDK_PIXBUF_API_VERSION@ @GDK_PIXBUF_EXTRA_CFLAGS@
+--- gdk-pixbuf-2.24.1/gdk-pixbuf-2.0-uninstalled.pc.in.orig	2011-08-16 03:45:14.000000000 +0200
++++ gdk-pixbuf-2.24.1/gdk-pixbuf-2.0-uninstalled.pc.in	2011-12-26 21:54:34.193173854 +0100
+@@ -6,6 +6,6 @@
+ Name: GdkPixbuf Uninstalled
+ Description: Image loading and scaling, Not Installed
+ Version: @VERSION@
+-Requires: gobject-2.0 gmodule-2.0 @PNG_DEP_CFLAGS_PACKAGES@
++Requires: gobject-2.0 gmodule-2.0
+ Libs: ${pc_top_builddir}/${pcfiledir}/gdk-pixbuf/libgdk_pixbuf-@GDK_PIXBUF_API_VERSION@.la @GDK_PIXBUF_EXTRA_LIBS@
+ Cflags: -I${pc_top_builddir}/${pcfiledir}/@srcdir@ -I${pc_top_builddir}/${pcfiledir} @GDK_PIXBUF_EXTRA_CFLAGS@
+--- gdk-pixbuf-2.24.1/configure.ac.orig	2011-12-26 19:47:09.966251231 +0100
++++ gdk-pixbuf-2.24.1/configure.ac	2011-12-26 21:55:25.193175561 +0100
+@@ -814,9 +814,7 @@
+     STATIC_LIB_DEPS="$STATIC_LIB_DEPS $LIBJPEG"
+   fi
+   if echo "$included_loaders" | egrep '(^|,)png($|,)' > /dev/null; then
+-    if test -z $PNG_DEP_CFLAGS_PACKAGES; then
+       STATIC_LIB_DEPS="$STATIC_LIB_DEPS $LIBPNG"
+-    fi
+   fi
+   if echo "$included_loaders" | egrep '(^|,)jasper($|,)' > /dev/null; then
+     STATIC_LIB_DEPS="$STATIC_LIB_DEPS $LIBJASPER"
+@@ -918,8 +916,8 @@
+ GDK_PIXBUF_PACKAGES="gmodule-no-export-2.0 gobject-2.0 gio-2.0"
+ GDK_PIXBUF_EXTRA_LIBS="$STATIC_LIB_DEPS $MATH_LIB $MEDIA_LIB"
+ GDK_PIXBUF_EXTRA_CFLAGS=
+-GDK_PIXBUF_DEP_LIBS="`$PKG_CONFIG --libs $GDK_PIXBUF_PACKAGES $PNG_DEP_CFLAGS_PACKAGES` $GDK_PIXBUF_EXTRA_LIBS"
+-GDK_PIXBUF_DEP_CFLAGS="`$PKG_CONFIG --cflags  gthread-2.0 $GDK_PIXBUF_PACKAGES $PNG_DEP_CFLAGS_PACKAGES` $GDK_PIXBUF_EXTRA_CFLAGS"
++GDK_PIXBUF_DEP_LIBS="`$PKG_CONFIG --libs $GDK_PIXBUF_PACKAGES` $GDK_PIXBUF_EXTRA_LIBS"
++GDK_PIXBUF_DEP_CFLAGS="`$PKG_CONFIG --cflags  gthread-2.0 $GDK_PIXBUF_PACKAGES` $GDK_PIXBUF_EXTRA_CFLAGS"
+ 
+ AC_SUBST(PNG_DEP_CFLAGS_PACKAGES)
+ AC_SUBST(GDK_PIXBUF_PACKAGES)
