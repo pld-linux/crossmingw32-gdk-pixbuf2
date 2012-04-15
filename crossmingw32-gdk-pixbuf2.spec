@@ -5,19 +5,24 @@
 Summary:	An image loading and scaling library - cross MinGW32 version
 Summary(pl.UTF-8):	Biblioteka ładująca i skalująca obrazki - wersja skrośna MinGW32
 Name:		crossmingw32-gdk-pixbuf2
-Version:	2.26.0
+Version:	2.26.1
 Release:	1
 License:	LGPL v2+
 Group:		Development/Libraries
 Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.26/gdk-pixbuf-%{version}.tar.xz
-# Source0-md5:	1c186f9903a20e96587b9afb27944b40
+# Source0-md5:	82197921c651a81ae28178aa9adfc0e6
 Patch0:		gdk-pixbuf2-png-nodep.patch
+Patch1:		gdk-pixbuf2-gdip.patch
 URL:		http://developer.gnome.org/gdk-pixbuf/
+BuildRequires:	autoconf >= 2.63
+BuildRequires:	automake >= 1:1.11
 BuildRequires:	crossmingw32-gcc
 BuildRequires:	crossmingw32-glib2 >= 2.32.0
 BuildRequires:	crossmingw32-jasper
 BuildRequires:	crossmingw32-libpng
+BuildRequires:	gettext-devel >= 0.17
 BuildRequires:	gtk-doc >= 1.11
+BuildRequires:	libtool >= 2:2.2.6
 BuildRequires:	pkgconfig >= 1:0.15
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	xz
@@ -83,8 +88,15 @@ Biblioteki DLL gdk-pixbuf dla Windows.
 %prep
 %setup -q -n gdk-pixbuf-%{version}
 %patch0 -p1
+%patch1 -p1
 
 %build
+%{__gettextize}
+%{__libtoolize}
+%{__aclocal}
+%{__autoconf}
+%{__autoheader}
+%{__automake}
 export PKG_CONFIG_LIBDIR=%{_prefix}/lib/pkgconfig
 %configure \
 	--target=%{target} \
