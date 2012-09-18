@@ -5,12 +5,12 @@
 Summary:	An image loading and scaling library - cross MinGW32 version
 Summary(pl.UTF-8):	Biblioteka ładująca i skalująca obrazki - wersja skrośna MinGW32
 Name:		crossmingw32-gdk-pixbuf2
-Version:	2.26.3
+Version:	2.26.4
 Release:	1
 License:	LGPL v2+
 Group:		Development/Libraries
 Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.26/gdk-pixbuf-%{version}.tar.xz
-# Source0-md5:	350fb5dcaded7810bb77d424896f0b4e
+# Source0-md5:	e634924654bedfdbe58fab059f38ffed
 Patch0:		gdk-pixbuf2-png-nodep.patch
 Patch1:		gdk-pixbuf2-gdip.patch
 URL:		http://developer.gnome.org/gdk-pixbuf/
@@ -55,8 +55,9 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 # arch-specific flags (like alpha's -mieee) are not valid for i386 gcc
 %define		optflags	-O2
 %endif
-# -z options are invalid for mingw linker
+# -z options are invalid for mingw linker, most of -f options are Linux-specific
 %define		filterout_ld	-Wl,-z,.*
+%define		filterout_c	-f[-a-z0-9=]*
 
 %description
 gdk-pixbuf is an image loading and scaling library that can be
