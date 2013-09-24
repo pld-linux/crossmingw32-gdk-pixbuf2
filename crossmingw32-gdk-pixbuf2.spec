@@ -5,19 +5,20 @@
 Summary:	An image loading and scaling library - cross MinGW32 version
 Summary(pl.UTF-8):	Biblioteka ładująca i skalująca obrazki - wersja skrośna MinGW32
 Name:		crossmingw32-gdk-pixbuf2
-Version:	2.28.2
+Version:	2.30.0
 Release:	1
 License:	LGPL v2+
 Group:		Development/Libraries
-Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.28/gdk-pixbuf-%{version}.tar.xz
-# Source0-md5:	04c04e5042acd85cff6c439aba1995f1
+Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.30/gdk-pixbuf-%{version}.tar.xz
+# Source0-md5:	d1e32c91597f8f2fa6ead4201216dd05
 Patch0:		gdk-pixbuf2-png-nodep.patch
 Patch1:		gdk-pixbuf2-gdip.patch
+Patch2:		gdk-pixbuf2-win32.patch
 URL:		http://developer.gnome.org/gdk-pixbuf/
 BuildRequires:	autoconf >= 2.63
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	crossmingw32-gcc
-BuildRequires:	crossmingw32-glib2 >= 2.34.0
+BuildRequires:	crossmingw32-glib2 >= 2.37.2
 BuildRequires:	crossmingw32-jasper
 BuildRequires:	crossmingw32-libpng
 BuildRequires:	gettext-devel >= 0.17
@@ -30,7 +31,7 @@ BuildRequires:	xz
 BuildRequires:	crossmingw32-libjpeg
 BuildRequires:	crossmingw32-libtiff
 %endif
-Requires:	crossmingw32-glib2 >= 2.34.0
+Requires:	crossmingw32-glib2 >= 2.37.2
 Conflicts:	crossmingw32-gtk+2 < 2.22.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -78,7 +79,7 @@ Ten pakiet zawiera wersję skrośną dla Win32.
 Summary:	DLL gdk-pixbuf libraries for Windows
 Summary(pl.UTF-8):	Biblioteki DLL gdk-pixbuf dla Windows
 Group:		Applications/Emulators
-Requires:	crossmingw32-glib2-dll >= 2.34.0
+Requires:	crossmingw32-glib2-dll >= 2.37.2
 Requires:	wine
 Conflicts:	crossmingw32-gtk+2-dll < 2.22.0
 
@@ -92,6 +93,7 @@ Biblioteki DLL gdk-pixbuf dla Windows.
 %setup -q -n gdk-pixbuf-%{version}
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 %build
 %{__gettextize}
