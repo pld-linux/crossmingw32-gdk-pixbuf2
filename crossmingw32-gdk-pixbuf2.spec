@@ -20,7 +20,7 @@ BuildRequires:	crossmingw32-gcc
 BuildRequires:	crossmingw32-glib2 >= 2.37.6
 BuildRequires:	crossmingw32-jasper
 BuildRequires:	crossmingw32-libpng
-BuildRequires:	gettext-devel >= 0.17
+BuildRequires:	gettext-tools >= 0.17
 BuildRequires:	gtk-doc >= 1.20
 BuildRequires:	libtool >= 2:2.2.6
 BuildRequires:	pkgconfig >= 1:0.15
