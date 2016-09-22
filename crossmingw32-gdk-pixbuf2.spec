@@ -5,15 +5,15 @@
 Summary:	An image loading and scaling library - cross MinGW32 version
 Summary(pl.UTF-8):	Biblioteka ładująca i skalująca obrazki - wersja skrośna MinGW32
 Name:		crossmingw32-gdk-pixbuf2
-Version:	2.34.0
+Version:	2.36.0
 Release:	1
 License:	LGPL v2+
 Group:		Development/Libraries
-Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.34/gdk-pixbuf-%{version}.tar.xz
-# Source0-md5:	63cb19f92cf7709ccf44bbb6fe1ff70c
+Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.36/gdk-pixbuf-%{version}.tar.xz
+# Source0-md5:	1a3baf91956c7923dab49ee3de100ce1
 Patch0:		gdk-pixbuf2-png-nodep.patch
 Patch1:		gdk-pixbuf2-gdip.patch
-URL:		http://developer.gnome.org/gdk-pixbuf/
+URL:		https://developer.gnome.org/gdk-pixbuf/
 BuildRequires:	autoconf >= 2.63
 BuildRequires:	automake >= 1:1.11
 BuildRequires:	crossmingw32-gcc
@@ -119,7 +119,7 @@ rm -rf $RPM_BUILD_ROOT
 	DESTDIR=$RPM_BUILD_ROOT
 
 install -d $RPM_BUILD_ROOT%{_dlldir}
-mv -f $RPM_BUILD_ROOT%{_prefix}/bin/*.dll $RPM_BUILD_ROOT%{_dlldir}
+%{__mv} $RPM_BUILD_ROOT%{_prefix}/bin/*.dll $RPM_BUILD_ROOT%{_dlldir}
 
 %if 0%{!?debug:1}
 %{target}-strip --strip-unneeded -R.comment -R.note $RPM_BUILD_ROOT%{_dlldir}/*.dll \
@@ -138,7 +138,6 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %{_libdir}/libgdk_pixbuf-2.0.dll.a
 %{_libdir}/libgdk_pixbuf-2.0.la
-%{_libdir}/gdk_pixbuf-2.0.def
 %{_includedir}/gdk-pixbuf-2.0
 %{_pkgconfigdir}/gdk-pixbuf-2.0.pc
 
