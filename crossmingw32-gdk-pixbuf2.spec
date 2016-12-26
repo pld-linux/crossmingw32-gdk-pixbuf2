@@ -5,12 +5,12 @@
 Summary:	An image loading and scaling library - cross MinGW32 version
 Summary(pl.UTF-8):	Biblioteka ładująca i skalująca obrazki - wersja skrośna MinGW32
 Name:		crossmingw32-gdk-pixbuf2
-Version:	2.36.0
+Version:	2.36.2
 Release:	1
 License:	LGPL v2+
 Group:		Development/Libraries
 Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.36/gdk-pixbuf-%{version}.tar.xz
-# Source0-md5:	1a3baf91956c7923dab49ee3de100ce1
+# Source0-md5:	d307c1eef87bac86e42abbf4eda1eac2
 Patch0:		gdk-pixbuf2-png-nodep.patch
 Patch1:		gdk-pixbuf2-gdip.patch
 URL:		https://developer.gnome.org/gdk-pixbuf/
@@ -24,6 +24,7 @@ BuildRequires:	gettext-tools >= 0.19
 BuildRequires:	gtk-doc >= 1.20
 BuildRequires:	libtool >= 2:2.2.6
 BuildRequires:	pkgconfig >= 1:0.15
+BuildRequires:	sed >= 4.0
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	xz
 %if %{without gdiplus}
@@ -92,6 +93,9 @@ Biblioteki DLL gdk-pixbuf dla Windows.
 %setup -q -n gdk-pixbuf-%{version}
 %patch0 -p1
 %patch1 -p1
+
+# disable thumbnailer (unwanted, generates files using built library/binary)
+%{__sed} -i -e '/^SUBDIRS/s/ thumbnailer / /' Makefile.am
 
 %build
 %{__gettextize}
