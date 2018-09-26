@@ -5,12 +5,12 @@
 Summary:	An image loading and scaling library - cross MinGW32 version
 Summary(pl.UTF-8):	Biblioteka ładująca i skalująca obrazki - wersja skrośna MinGW32
 Name:		crossmingw32-gdk-pixbuf2
-Version:	2.36.11
+Version:	2.36.12
 Release:	1
 License:	LGPL v2+
 Group:		Development/Libraries
 Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.36/gdk-pixbuf-%{version}.tar.xz
-# Source0-md5:	6e84e5485c17ce7c25df77fe76eb2d6a
+# Source0-md5:	7305ab43d741270ffa53ad2896d7f530
 Patch0:		gdk-pixbuf2-png-nodep.patch
 Patch1:		gdk-pixbuf2-gdip.patch
 URL:		https://developer.gnome.org/gdk-pixbuf/
@@ -21,6 +21,8 @@ BuildRequires:	crossmingw32-glib2 >= 2.48.0
 BuildRequires:	crossmingw32-jasper
 BuildRequires:	crossmingw32-libpng >= 1.0
 BuildRequires:	gettext-tools >= 0.19
+# glib-genmarshal, glib-mkenums
+BuildRequires:	glib2-devel >= 1:2.48.0
 BuildRequires:	gtk-doc >= 1.20
 BuildRequires:	libtool >= 2:2.2.6
 BuildRequires:	pkgconfig >= 1:0.15
@@ -114,7 +116,9 @@ export PKG_CONFIG_LIBDIR=%{_prefix}/lib/pkgconfig
 	--with-libjasper \
 	%{!?with_gdiplus:--without-gdiplus}
 
-%{__make}
+%{__make} \
+	GLIB_GENMARSHAL=/usr/bin/glib-genmarshal \
+	GLIB_MKENUMS=/usr/bin/glib-mkenums
 
 %install
 rm -rf $RPM_BUILD_ROOT
