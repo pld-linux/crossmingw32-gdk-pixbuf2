@@ -23,6 +23,7 @@ BuildRequires:	gtk-doc >= 1.20
 BuildRequires:	meson >= 0.46.0
 BuildRequires:	ninja
 BuildRequires:	pkgconfig >= 1:0.15
+BuildRequires:	rpmbuild(macros) >= 1.727
 BuildRequires:	sed >= 4.0
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	xz
