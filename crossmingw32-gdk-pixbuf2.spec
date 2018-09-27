@@ -5,17 +5,13 @@
 Summary:	An image loading and scaling library - cross MinGW32 version
 Summary(pl.UTF-8):	Biblioteka ładująca i skalująca obrazki - wersja skrośna MinGW32
 Name:		crossmingw32-gdk-pixbuf2
-Version:	2.36.12
+Version:	2.38.0
 Release:	1
 License:	LGPL v2+
 Group:		Development/Libraries
-Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.36/gdk-pixbuf-%{version}.tar.xz
-# Source0-md5:	7305ab43d741270ffa53ad2896d7f530
-Patch0:		gdk-pixbuf2-png-nodep.patch
-Patch1:		gdk-pixbuf2-gdip.patch
+Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.38/gdk-pixbuf-%{version}.tar.xz
+# Source0-md5:	77765f24496dc8c90c6e0cbe10fd8f0e
 URL:		https://developer.gnome.org/gdk-pixbuf/
-BuildRequires:	autoconf >= 2.63
-BuildRequires:	automake >= 1:1.11
 BuildRequires:	crossmingw32-gcc
 BuildRequires:	crossmingw32-glib2 >= 2.48.0
 BuildRequires:	crossmingw32-jasper
@@ -24,7 +20,8 @@ BuildRequires:	gettext-tools >= 0.19
 # glib-genmarshal, glib-mkenums
 BuildRequires:	glib2-devel >= 1:2.48.0
 BuildRequires:	gtk-doc >= 1.20
-BuildRequires:	libtool >= 2:2.2.6
+BuildRequires:	meson >= 0.46.0
+BuildRequires:	ninja
 BuildRequires:	pkgconfig >= 1:0.15
 BuildRequires:	sed >= 4.0
 BuildRequires:	tar >= 1:1.22
@@ -54,8 +51,6 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %define		__pkgconfig_provides	%{nil}
 %define		__pkgconfig_requires	%{nil}
 
-#define         filterout_ld            (-Wl,)?-as-needed.*
-
 %ifnarch %{ix86}
 # arch-specific flags (like alpha's -mieee) are not valid for i386 gcc
 %define		optflags	-O2
@@ -77,6 +72,18 @@ funkcjonalność może być rozszerzana o obsługę nowych formatów poprzez
 
 Ten pakiet zawiera wersję skrośną dla Win32.
 
+%package static
+Summary:	Static gdk-pixbuf library (cross MinGW32 version)
+Summary(pl.UTF-8):	Statyczna biblioteka gdk-pixbuf (wersja skrośna MinGW32)
+Group:		Development/Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description static
+Static gdk-pixbuf library (cross MinGW32 version).
+
+%description static -l pl.UTF-8
+Statyczna biblioteka gdk-pixbuf (wersja skrośna MinGW32).
+
 %package dll
 Summary:	DLL gdk-pixbuf libraries for Windows
 Summary(pl.UTF-8):	Biblioteki DLL gdk-pixbuf dla Windows
@@ -93,38 +100,47 @@ Biblioteki DLL gdk-pixbuf dla Windows.
 
 %prep
 %setup -q -n gdk-pixbuf-%{version}
-%patch0 -p1
-%patch1 -p1
 
-# disable thumbnailer (unwanted, generates files using built library/binary)
-%{__sed} -i -e '/^SUBDIRS/s/ thumbnailer / /' Makefile.am
+# disable loaders.cache generation
+%{__sed} -i -e "/^loaders_cache/,/^loaders_dep/ d" gdk-pixbuf/meson.build
+# disable tests and thumbnailer (unwanted, generates files using built library/binary)
+%{__sed} -i -e "/^subdir('tests')/d" meson.build
+%{__sed} -i -e "/^subdir('thumbnailer')/d" meson.build
+
+cat > meson-cross.txt <<'EOF'
+[host_machine]
+system = 'windows'
+cpu_family = 'x86'
+cpu = 'i386'
+endian='little'
+[binaries]
+c = '%{__cc}'
+ar = '%{target}-ar'
+windres = '%{target}-windres'
+pkgconfig = 'pkg-config'
+[properties]
+; force gnu99 to disable __STRICT_ANSI__ and unblock fdopen() in mingw32
+c_args = ['%(echo %{rpmcflags} | sed -e "s/ \+/ /g;s/ /', '/g")', '-std=gnu99']
+EOF
 
 %build
-%{__gettextize}
-%{__libtoolize}
-%{__aclocal}
-%{__autoconf}
-%{__autoheader}
-%{__automake}
 export PKG_CONFIG_LIBDIR=%{_prefix}/lib/pkgconfig
-%configure \
-	--target=%{target} \
-	--host=%{target} \
-	--disable-gtk-doc \
-	--disable-man \
-	--disable-silent-rules \
-	--with-libjasper \
-	%{!?with_gdiplus:--without-gdiplus}
+%meson build \
+	--cross-file meson-cross.txt \
+	-Ddocs=false \
+	-Dgir=false \
+	-Dinstalled_tests=false \
+	-Djasper=true \
+	-Dman=false \
+	%{?with_gdiplus:-Dnative_windows_loaders=true} \
+	-Dx11=false
 
-%{__make} \
-	GLIB_GENMARSHAL=/usr/bin/glib-genmarshal \
-	GLIB_MKENUMS=/usr/bin/glib-mkenums
+%meson_build -C build
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%{__make} install \
-	DESTDIR=$RPM_BUILD_ROOT
+%meson_install -j1 -C build
 
 install -d $RPM_BUILD_ROOT%{_dlldir}
 %{__mv} $RPM_BUILD_ROOT%{_prefix}/bin/*.dll $RPM_BUILD_ROOT%{_dlldir}
@@ -137,8 +153,8 @@ install -d $RPM_BUILD_ROOT%{_dlldir}
 
 # shut up check-files
 %{__rm} $RPM_BUILD_ROOT%{_bindir}/*.exe
-%{__rm} -r $RPM_BUILD_ROOT%{_datadir}/{gtk-doc,locale,man}
-%{__rm} -r $RPM_BUILD_ROOT%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/*.{la,dll.a}
+%{__rm} -r $RPM_BUILD_ROOT%{_datadir}/locale
+%{__rm} -r $RPM_BUILD_ROOT%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/*.dll.a
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -146,9 +162,12 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %{_libdir}/libgdk_pixbuf-2.0.dll.a
-%{_libdir}/libgdk_pixbuf-2.0.la
 %{_includedir}/gdk-pixbuf-2.0
 %{_pkgconfigdir}/gdk-pixbuf-2.0.pc
+
+%files static
+%defattr(644,root,root,755)
+%{_libdir}/libgdk_pixbuf-2.0.a
 
 %files dll
 %defattr(644,root,root,755)
