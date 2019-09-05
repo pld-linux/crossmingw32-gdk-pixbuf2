@@ -47,10 +47,9 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %define		_libdir			%{_prefix}/lib
 %define		_pkgconfigdir		%{_prefix}/lib/pkgconfig
 %define		_dlldir			/usr/share/wine/windows/system
-%define		__cc			%{target}-gcc
-%define		__cxx			%{target}-g++
 %define		__pkgconfig_provides	%{nil}
 %define		__pkgconfig_requires	%{nil}
+# for meson 0.50+, keep __cc/__cxx as host compiler and pass %{target}-* in meson-cross.txt
 
 %ifnarch %{ix86}
 # arch-specific flags (like alpha's -mieee) are not valid for i386 gcc
@@ -115,7 +114,7 @@ cpu_family = 'x86'
 cpu = 'i386'
 endian='little'
 [binaries]
-c = '%{__cc}'
+c = '%{target}-gcc'
 ar = '%{target}-ar'
 windres = '%{target}-windres'
 pkgconfig = 'pkg-config'
