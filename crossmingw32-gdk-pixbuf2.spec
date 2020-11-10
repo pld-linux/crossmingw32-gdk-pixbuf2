@@ -5,25 +5,24 @@
 Summary:	An image loading and scaling library - cross MinGW32 version
 Summary(pl.UTF-8):	Biblioteka ładująca i skalująca obrazki - wersja skrośna MinGW32
 Name:		crossmingw32-gdk-pixbuf2
-Version:	2.40.0
+Version:	2.42.0
 Release:	1
 License:	LGPL v2+
 Group:		Development/Libraries
-Source0:	http://ftp.gnome.org/pub/GNOME/sources/gdk-pixbuf/2.40/gdk-pixbuf-%{version}.tar.xz
-# Source0-md5:	05eb1ebc258ba905f1c8644ef49de064
+Source0:	https://download.gnome.org/sources/gdk-pixbuf/2.42/gdk-pixbuf-%{version}.tar.xz
+# Source0-md5:	319ebe4d10db655308fd0ad268101542
 URL:		https://developer.gnome.org/gdk-pixbuf/
 BuildRequires:	crossmingw32-gcc
-BuildRequires:	crossmingw32-glib2 >= 2.48.0
-BuildRequires:	crossmingw32-jasper
+BuildRequires:	crossmingw32-glib2 >= 2.56.0
 BuildRequires:	crossmingw32-libpng >= 1.0
 BuildRequires:	gettext-tools >= 0.19
 # glib-genmarshal, glib-mkenums
-BuildRequires:	glib2-devel >= 1:2.48.0
+BuildRequires:	glib2-devel >= 1:2.56.0
 BuildRequires:	gtk-doc >= 1.20
-BuildRequires:	meson >= 0.46.0
-BuildRequires:	ninja
+BuildRequires:	meson >= 0.48.0
+BuildRequires:	ninja >= 1.5
 BuildRequires:	pkgconfig >= 1:0.15
-BuildRequires:	rpmbuild(macros) >= 1.727
+BuildRequires:	rpmbuild(macros) >= 1.736
 BuildRequires:	sed >= 4.0
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	xz
@@ -31,7 +30,7 @@ BuildRequires:	xz
 BuildRequires:	crossmingw32-libjpeg
 BuildRequires:	crossmingw32-libtiff
 %endif
-Requires:	crossmingw32-glib2 >= 2.48.0
+Requires:	crossmingw32-glib2 >= 2.56.0
 Conflicts:	crossmingw32-gtk+2 < 2.22.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -88,7 +87,7 @@ Statyczna biblioteka gdk-pixbuf (wersja skrośna MinGW32).
 Summary:	DLL gdk-pixbuf libraries for Windows
 Summary(pl.UTF-8):	Biblioteki DLL gdk-pixbuf dla Windows
 Group:		Applications/Emulators
-Requires:	crossmingw32-glib2-dll >= 2.48.0
+Requires:	crossmingw32-glib2-dll >= 2.56.0
 Requires:	wine
 Conflicts:	crossmingw32-gtk+2-dll < 2.22.0
 
@@ -127,20 +126,17 @@ EOF
 export PKG_CONFIG_LIBDIR=%{_prefix}/lib/pkgconfig
 %meson build \
 	--cross-file meson-cross.txt \
-	-Ddocs=false \
-	-Dgir=false \
 	-Dinstalled_tests=false \
-	-Djasper=true \
+	-Dintrospection=disabled \
 	-Dman=false \
-	%{?with_gdiplus:-Dnative_windows_loaders=true} \
-	-Dx11=false
+	%{?with_gdiplus:-Dnative_windows_loaders=true}
 
-%meson_build -C build
+%ninja_build -C build
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%meson_install -j1 -C build
+%ninja_install -j1 -C build
 
 install -d $RPM_BUILD_ROOT%{_dlldir}
 %{__mv} $RPM_BUILD_ROOT%{_prefix}/bin/*.dll $RPM_BUILD_ROOT%{_dlldir}
