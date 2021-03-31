@@ -5,12 +5,12 @@
 Summary:	An image loading and scaling library - cross MinGW32 version
 Summary(pl.UTF-8):	Biblioteka ładująca i skalująca obrazki - wersja skrośna MinGW32
 Name:		crossmingw32-gdk-pixbuf2
-Version:	2.42.2
+Version:	2.42.4
 Release:	1
 License:	LGPL v2+
 Group:		Development/Libraries
 Source0:	https://download.gnome.org/sources/gdk-pixbuf/2.42/gdk-pixbuf-%{version}.tar.xz
-# Source0-md5:	7d7617db8dae8ce313160384ab0a71db
+# Source0-md5:	628e4767d1636a06dea5b0fa4838f723
 URL:		https://developer.gnome.org/gdk-pixbuf/
 BuildRequires:	crossmingw32-gcc
 BuildRequires:	crossmingw32-glib2 >= 2.56.0
@@ -18,7 +18,6 @@ BuildRequires:	crossmingw32-libpng >= 1.0
 BuildRequires:	gettext-tools >= 0.19
 # glib-genmarshal, glib-mkenums
 BuildRequires:	glib2-devel >= 1:2.56.0
-BuildRequires:	gtk-doc >= 1.20
 BuildRequires:	meson >= 0.55.3
 BuildRequires:	ninja >= 1.5
 BuildRequires:	pkgconfig >= 1:0.15
@@ -105,6 +104,8 @@ Biblioteki DLL gdk-pixbuf dla Windows.
 # disable tests and thumbnailer (unwanted, generates files using built library/binary)
 %{__sed} -i -e "/^subdir('tests')/d" meson.build
 %{__sed} -i -e "/^subdir('thumbnailer')/d" meson.build
+# disable unused gi-docgen subproject
+%{__sed} -i -e '/fallback:.*gi-docgen/d' docs/meson.build
 
 cat > meson-cross.txt <<'EOF'
 [host_machine]
@@ -126,6 +127,7 @@ EOF
 export PKG_CONFIG_LIBDIR=%{_prefix}/lib/pkgconfig
 %meson build \
 	--cross-file meson-cross.txt \
+	-Ddocs=false \
 	-Dinstalled_tests=false \
 	-Dintrospection=disabled \
 	-Dman=false \
