@@ -1,17 +1,17 @@
 #
 # Conditional build:
-%bcond_without	gdiplus	# use libjpeg and libtiff instead of system GDIPLUS
+%bcond_without	gdiplus	# system GDIPLUS instead of libjpeg and libtiff
 #
 Summary:	An image loading and scaling library - cross MinGW32 version
 Summary(pl.UTF-8):	Biblioteka ładująca i skalująca obrazki - wersja skrośna MinGW32
 Name:		crossmingw32-gdk-pixbuf2
-Version:	2.42.12
+Version:	2.44.2
 Release:	1
 License:	LGPL v2+
 Group:		Development/Libraries
-Source0:	https://download.gnome.org/sources/gdk-pixbuf/2.42/gdk-pixbuf-%{version}.tar.xz
-# Source0-md5:	f986fdbba5ec6233c96f8b6535811780
-URL:		https://developer.gnome.org/gdk-pixbuf/
+Source0:	https://download.gnome.org/sources/gdk-pixbuf/2.44/gdk-pixbuf-%{version}.tar.xz
+# Source0-md5:	75f9cae9bd3c82d4648673e86a77c7bb
+URL:		https://gnome.pages.gitlab.gnome.org/gtk/gdk-pixbuf/
 BuildRequires:	crossmingw32-gcc
 BuildRequires:	crossmingw32-glib2 >= 2.56.0
 BuildRequires:	crossmingw32-libpng >= 1.0
@@ -21,8 +21,7 @@ BuildRequires:	glib2-devel >= 1:2.56.0
 BuildRequires:	meson >= 0.55.3
 BuildRequires:	ninja >= 1.5
 BuildRequires:	pkgconfig >= 1:0.15
-BuildRequires:	rpmbuild(macros) >= 1.736
-BuildRequires:	sed >= 4.0
+BuildRequires:	rpmbuild(macros) >= 2.042
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	xz
 %if %{without gdiplus}
@@ -30,6 +29,11 @@ BuildRequires:	crossmingw32-libjpeg
 BuildRequires:	crossmingw32-libtiff
 %endif
 Requires:	crossmingw32-glib2 >= 2.56.0
+Requires:	crossmingw32-libpng >= 1.0
+%if %{without gdiplus}
+Requires:	crossmingw32-libjpeg
+Requires:	crossmingw32-libtiff
+%endif
 Conflicts:	crossmingw32-gtk+2 < 2.22.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -45,6 +49,7 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %define		_prefix			%{_sysprefix}/%{target}
 %define		_libdir			%{_prefix}/lib
 %define		_pkgconfigdir		%{_prefix}/lib/pkgconfig
+%define		_docdir			%{_sysprefix}/share/doc
 %define		_dlldir			/usr/share/wine/windows/system
 %define		__pkgconfig_provides	%{nil}
 %define		__pkgconfig_requires	%{nil}
@@ -100,14 +105,6 @@ Biblioteki DLL gdk-pixbuf dla Windows.
 %prep
 %setup -q -n gdk-pixbuf-%{version}
 
-# disable loaders.cache generation
-%{__sed} -i -e "/^loaders_cache/,/^loaders_dep/ d" gdk-pixbuf/meson.build
-# disable tests and thumbnailer (unwanted, generates files using built library/binary)
-%{__sed} -i -e "/^subdir('tests')/d" meson.build
-%{__sed} -i -e "/^subdir('thumbnailer')/d" meson.build
-# disable unused gi-docgen subproject
-%{__sed} -i -e '/fallback:.*gi-docgen/d' docs/meson.build
-
 cat > meson-cross.txt <<'EOF'
 [host_machine]
 system = 'windows'
@@ -118,30 +115,44 @@ endian='little'
 c = '%{target}-gcc'
 ar = '%{target}-ar'
 windres = '%{target}-windres'
-pkgconfig = 'pkg-config'
-[properties]
+pkg-config = 'pkg-config'
+[built-in options]
+%ifarch %{ix86}
 ; force gnu99 to disable __STRICT_ANSI__ and unblock fdopen() in mingw32
 c_args = ['%(echo %{rpmcflags} | sed -e "s/ \+/ /g;s/ /', '/g")', '-std=gnu99']
+%else
+# arch-specific flags (like alpha's -mieee) are not valid for i386 gcc.
+c_args = ['-O2', '-std=gnu99']
+%endif
 EOF
 
 %build
+unset PKG_CONFIG_PATH
 export PKG_CONFIG_LIBDIR=%{_prefix}/lib/pkgconfig
-%meson build \
+%meson \
 	--cross-file meson-cross.txt \
+	-Dandroid=disabled \
 	-Dbuiltin_loaders="" \
-	-Ddocs=false \
+	-Ddocumentation=false \
+	-Dgif=%{__enabled_disabled_not gdiplus} \
+	-Dglycin=disabled \
 	-Dinstalled_tests=false \
 	-Dintrospection=disabled \
+	-Djpeg=%{__enabled_disabled_not gdiplus} \
 	-Dman=false \
 	%{?with_gdiplus:-Dnative_windows_loaders=true} \
-	-Dothers=enabled
+	-Dothers=enabled \
+	-Dpng=enabled \
+	-Dtests=false \
+	-Dthumbnailer=disabled \
+	-Dtiff=%{__enabled_disabled_not gdiplus}
 
-%ninja_build -C build
+%meson_build
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%ninja_install -j1 -C build
+%meson_install
 
 install -d $RPM_BUILD_ROOT%{_dlldir}
 %{__mv} $RPM_BUILD_ROOT%{_prefix}/bin/*.dll $RPM_BUILD_ROOT%{_dlldir}
@@ -172,8 +183,30 @@ rm -rf $RPM_BUILD_ROOT
 
 %files dll
 %defattr(644,root,root,755)
-%{_dlldir}/libgdk_pixbuf-2.0-*.dll
+%{_dlldir}/libgdk_pixbuf-2.0-0.dll
 %dir %{_libdir}/gdk-pixbuf-2.0
 %dir %{_libdir}/gdk-pixbuf-2.0/%{abiver}
 %dir %{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders
-%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-*.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-ani.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-icns.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-png.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-pnm.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-qtif.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-tga.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-xbm.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-xpm.dll
+%if %{with gdiplus}
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-gdip-bmp.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-gdip-emf.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-gdip-gif.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-gdip-ico.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-gdip-jpeg.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-gdip-tiff.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-gdip-wmf.dll
+%else
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-bmp.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-gif.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-ico.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-jpeg.dll
+%{_libdir}/gdk-pixbuf-2.0/%{abiver}/loaders/libpixbufloader-tiff.dll
+%endif
